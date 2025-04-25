@@ -1,0 +1,81 @@
+[2025-04-25T19:22:11.749Z] Starting Gmail password recovery process...
+[2025-04-25T19:22:11.754Z] Launching browser with enhanced stealth techniques...
+[2025-04-25T19:22:15.928Z] Using random user agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
+[2025-04-25T19:22:15.936Z] Applied advanced stealth techniques
+[2025-04-25T19:22:15.937Z] Adding random delay of 2897ms before navigation...
+[2025-04-25T19:22:18.839Z] Navigating to Gmail sign-in page...
+[2025-04-25T19:22:19.176Z] 
+Page navigated to: https://accounts.google.com/v3/signin/identifier?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&ifkv=AXH0vVuE_IXClW2y4225_VGBClAcl79FdLNO_9ZGAnblTQrw-KnUrKPi_xuVH7wK9TXaimGgq3Tq&rip=1&sacu=1&service=mail&flowName=GlifWebSignIn&flowEntry=ServiceLogin&dsh=S739823165%3A1745608939206275
+[2025-04-25T19:22:20.927Z] 
+Page navigated to: https://accounts.google.com/v3/signin/identifier?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&ifkv=AXH0vVuE_IXClW2y4225_VGBClAcl79FdLNO_9ZGAnblTQrw-KnUrKPi_xuVH7wK9TXaimGgq3Tq&rip=1&sacu=1&service=mail&flowName=GlifWebSignIn&flowEntry=ServiceLogin&dsh=S739823165%3A1745608939206275
+[2025-04-25T19:22:22.517Z] Waiting for email input field...
+[2025-04-25T19:22:24.721Z] Entering email address: hassendiaeldein@gmail.com
+[2025-04-25T19:22:35.471Z] Moving mouse to Next button...
+[2025-04-25T19:22:37.227Z] Clicking Next button...
+[2025-04-25T19:22:40.029Z] 
+Page navigated to: https://accounts.google.com/v3/signin/challenge/pwd?TL=ADBLaQBQr7MNKprRrno-F0FZkzLgeyxncrnCRcwJvOJnKDJLChrCR_xouy9smpuQ&checkConnection=youtube%3A791&checkedDomains=youtube&cid=1&continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&dsh=S739823165%3A1745608939206275&flowEntry=ServiceLogin&flowName=GlifWebSignIn&ifkv=AXH0vVuE_IXClW2y4225_VGBClAcl79FdLNO_9ZGAnblTQrw-KnUrKPi_xuVH7wK9TXaimGgq3Tq&pstMsg=1&rip=1&service=mail
+[2025-04-25T19:22:40.037Z] Post-email page detected, checking for CAPTCHA...
+[2025-04-25T19:22:42.272Z] 
+==============================================
+[2025-04-25T19:22:42.278Z] RUNNING POST-EMAIL CAPTCHA DETECTION CHECK
+[2025-04-25T19:22:42.283Z] Current URL: https://accounts.google.com/v3/signin/challenge/pwd?TL=ADBLaQBQr7MNKprRrno-F0FZkzLgeyxncrnCRcwJvOJnKDJLChrCR_xouy9smpuQ&checkConnection=youtube%3A791&checkedDomains=youtube&cid=1&continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&dsh=S739823165%3A1745608939206275&flowEntry=ServiceLogin&flowName=GlifWebSignIn&ifkv=AXH0vVuE_IXClW2y4225_VGBClAcl79FdLNO_9ZGAnblTQrw-KnUrKPi_xuVH7wK9TXaimGgq3Tq&pstMsg=1&rip=1&service=mail
+[2025-04-25T19:22:42.286Z] ==============================================
+
+[2025-04-25T19:22:42.287Z] Checking page sources for CAPTCHA...
+[2025-04-25T19:22:42.338Z] 
+==============================================
+[2025-04-25T19:22:42.339Z] CAPTCHA NEEDED - DETECTED IN PAGE SOURCES
+[2025-04-25T19:22:42.342Z] DETECTION METHOD: HTML_SOURCE
+[2025-04-25T19:22:42.343Z] CAPTCHA PATTERN FOUND: captcha
+[2025-04-25T19:22:42.344Z] ==============================================
+
+[2025-04-25T19:22:42.347Z] ERROR: Error during CAPTCHA detection: ReferenceError: screenshotsDir is not defined
+[2025-04-25T19:22:42.397Z] Security challenge detected: Enter a password
+[2025-04-25T19:22:42.401Z] Taking screenshot of security challenge...
+[2025-04-25T19:22:42.755Z] Checking for CAPTCHA after clicking Next...
+[2025-04-25T19:22:44.767Z] We are on a post-email page, checking for CAPTCHA...
+[2025-04-25T19:22:44.795Z] 
+==============================================
+[2025-04-25T19:22:44.813Z] RUNNING POST-EMAIL CAPTCHA DETECTION CHECK
+[2025-04-25T19:22:44.831Z] Current URL: https://accounts.google.com/v3/signin/challenge/pwd?TL=ADBLaQBQr7MNKprRrno-F0FZkzLgeyxncrnCRcwJvOJnKDJLChrCR_xouy9smpuQ&checkConnection=youtube%3A791&checkedDomains=youtube&cid=1&continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&dsh=S739823165%3A1745608939206275&flowEntry=ServiceLogin&flowName=GlifWebSignIn&ifkv=AXH0vVuE_IXClW2y4225_VGBClAcl79FdLNO_9ZGAnblTQrw-KnUrKPi_xuVH7wK9TXaimGgq3Tq&pstMsg=1&rip=1&service=mail
+[2025-04-25T19:22:44.834Z] ==============================================
+
+[2025-04-25T19:22:44.836Z] Checking page sources for CAPTCHA...
+[2025-04-25T19:22:44.849Z] 
+==============================================
+[2025-04-25T19:22:44.849Z] CAPTCHA NEEDED - DETECTED IN PAGE SOURCES
+[2025-04-25T19:22:44.850Z] DETECTION METHOD: HTML_SOURCE
+[2025-04-25T19:22:44.850Z] CAPTCHA PATTERN FOUND: captcha
+[2025-04-25T19:22:44.850Z] ==============================================
+
+[2025-04-25T19:22:44.851Z] ERROR: Error during CAPTCHA detection: ReferenceError: screenshotsDir is not defined
+[2025-04-25T19:22:44.853Z] ERROR: CAPTCHA IMAGE SOURCE NOT FOUND
+[2025-04-25T19:22:44.854Z] 
+==============================================
+[2025-04-25T19:22:44.854Z] FINAL CAPTCHA CHECK BEFORE PASSWORD PAGE
+[2025-04-25T19:22:44.855Z] Current URL: https://accounts.google.com/v3/signin/challenge/pwd?TL=ADBLaQBQr7MNKprRrno-F0FZkzLgeyxncrnCRcwJvOJnKDJLChrCR_xouy9smpuQ&checkConnection=youtube%3A791&checkedDomains=youtube&cid=1&continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&dsh=S739823165%3A1745608939206275&flowEntry=ServiceLogin&flowName=GlifWebSignIn&ifkv=AXH0vVuE_IXClW2y4225_VGBClAcl79FdLNO_9ZGAnblTQrw-KnUrKPi_xuVH7wK9TXaimGgq3Tq&pstMsg=1&rip=1&service=mail
+[2025-04-25T19:22:44.855Z] ==============================================
+
+[2025-04-25T19:22:47.858Z] We are on a post-email page, performing final CAPTCHA check...
+[2025-04-25T19:22:47.864Z] 
+==============================================
+[2025-04-25T19:22:47.870Z] RUNNING POST-EMAIL CAPTCHA DETECTION CHECK
+[2025-04-25T19:22:47.877Z] Current URL: https://accounts.google.com/v3/signin/challenge/pwd?TL=ADBLaQBQr7MNKprRrno-F0FZkzLgeyxncrnCRcwJvOJnKDJLChrCR_xouy9smpuQ&checkConnection=youtube%3A791&checkedDomains=youtube&cid=1&continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&dsh=S739823165%3A1745608939206275&flowEntry=ServiceLogin&flowName=GlifWebSignIn&ifkv=AXH0vVuE_IXClW2y4225_VGBClAcl79FdLNO_9ZGAnblTQrw-KnUrKPi_xuVH7wK9TXaimGgq3Tq&pstMsg=1&rip=1&service=mail
+[2025-04-25T19:22:47.880Z] ==============================================
+
+[2025-04-25T19:22:47.881Z] Checking page sources for CAPTCHA...
+[2025-04-25T19:22:47.894Z] 
+==============================================
+[2025-04-25T19:22:47.895Z] CAPTCHA NEEDED - DETECTED IN PAGE SOURCES
+[2025-04-25T19:22:47.896Z] DETECTION METHOD: HTML_SOURCE
+[2025-04-25T19:22:47.896Z] CAPTCHA PATTERN FOUND: captcha
+[2025-04-25T19:22:47.896Z] ==============================================
+
+[2025-04-25T19:22:47.897Z] ERROR: Error during CAPTCHA detection: ReferenceError: screenshotsDir is not defined
+[2025-04-25T19:22:47.900Z] No CAPTCHA detected in final check, proceeding to password page
+[2025-04-25T19:22:47.900Z] Looking for Forgot password link...
+[2025-04-25T19:22:49.927Z] Moving to Forgot Password button...
+[2025-04-25T19:22:50.386Z] ERROR: Error clicking "Forgot password?" link: TargetCloseError: Protocol error (Input.dispatchMouseEvent): Session closed. Most likely the page has been closed.
+[2025-04-25T19:22:50.637Z] ERROR: An error occurred during the password recovery process: TargetCloseError: Protocol error (Page.bringToFront): Session closed. Most likely the page has been closed.
+[2025-04-25T19:23:03.881Z] Browser closed.
+[2025-04-25T19:23:03.882Z] ERROR: Invalid result type: 

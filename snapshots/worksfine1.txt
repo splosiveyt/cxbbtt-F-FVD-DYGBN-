@@ -1,0 +1,321 @@
+const puppeteer = require('puppeteer');
+// We'll use puppeteer directly with stealth techniques instead of undetected-browser
+// since we're having compatibility issues with the undetected-browser package
+
+/**
+ * Gmail Password Recovery Tool
+ * This script automates the Gmail password recovery workflow:
+ * 1. Navigate to Gmail sign-in page
+ * 2. Input email address and click next
+ * 3. Click on "Forgot password" option
+ */
+
+async function runGmailPasswordRecovery(email) {
+  console.log('Starting Gmail password recovery process...');
+  
+  // Configure browser options with enhanced stealth settings
+  const options = {
+    headless: false, // Running in headed mode for testing
+    defaultViewport: null,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-infobars',
+      '--window-size=1366,768',
+      '--disable-blink-features=AutomationControlled',
+      '--disable-features=IsolateOrigins,site-per-process',
+      '--disable-web-security',
+      '--disable-site-isolation-trials',
+      '--disable-features=BlockInsecurePrivateNetworkRequests',
+      '--disable-extensions',
+      '--disable-component-extensions-with-background-pages',
+      '--disable-default-apps',
+      '--disable-breakpad',
+      '--disable-dev-shm-usage',
+      '--disable-ipc-flooding-protection',
+      '--disable-renderer-backgrounding',
+      '--disable-background-timer-throttling',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-restore-session-state',
+      '--disable-sync',
+      '--disable-translate',
+      '--metrics-recording-only',
+      '--no-first-run',
+      '--no-default-browser-check',
+      '--no-zygote',
+      '--password-store=basic',
+      '--use-mock-keychain',
+      '--enable-webgl',
+      '--ignore-certificate-errors',
+      '--allow-running-insecure-content',
+      '--autoplay-policy=user-gesture-required',
+      '--font-render-hinting=none',
+      '--enable-features=NetworkServiceInProcess2',
+      '--force-color-profile=srgb',
+      '--mute-audio',
+    ],
+    ignoreDefaultArgs: ['--enable-automation'],
+  };
+  
+  // Launch puppeteer directly with enhanced stealth settings
+  console.log('Launching browser with enhanced stealth techniques...');
+  const browser = await puppeteer.launch(options);
+  
+  // Create a new page
+  const page = await browser.newPage();
+  
+  // Set user agent to appear more like a regular browser
+  const userAgents = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0'
+  ];
+  const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
+  await page.setUserAgent(randomUserAgent);
+  console.log(`Using random user agent: ${randomUserAgent}`);
+  
+  // Set extra HTTP headers to make the browser appear more human-like
+  await page.setExtraHTTPHeaders({
+    'Accept-Language': 'en-US,en;q=0.9',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="120"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-ch-ua-platform': '"Windows"',
+    'sec-fetch-dest': 'document',
+    'sec-fetch-mode': 'navigate',
+    'sec-fetch-site': 'none',
+    'sec-fetch-user': '?1',
+    'upgrade-insecure-requests': '1'
+  });
+  
+  // Override navigator properties to avoid detection
+  await page.evaluateOnNewDocument(() => {
+    // Override properties that are used to detect automation
+    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+    Object.defineProperty(navigator, 'plugins', {
+      get: () => [
+        { name: 'Chrome PDF Plugin', filename: 'internal-pdf-viewer' },
+        { name: 'Chrome PDF Viewer', filename: 'chrome-pdf-viewer' },
+        { name: 'Native Client', filename: 'native-client' }
+      ]
+    });
+    Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en', 'en-GB'] });
+    Object.defineProperty(navigator, 'platform', { get: () => 'Win32' });
+    Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => 8 });
+    Object.defineProperty(navigator, 'deviceMemory', { get: () => 8 });
+    
+    // Override the permissions API
+    const originalQuery = window.navigator.permissions.query;
+    window.navigator.permissions.query = (parameters) => (
+      parameters.name === 'notifications' ?
+        Promise.resolve({ state: Notification.permission }) :
+        originalQuery(parameters)
+    );
+    
+    // Add a more realistic WebGL renderer
+    const getParameter = WebGLRenderingContext.prototype.getParameter;
+    WebGLRenderingContext.prototype.getParameter = function(parameter) {
+      if (parameter === 37445) {
+        return 'Google Inc. (NVIDIA)';
+      }
+      if (parameter === 37446) {
+        return 'ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11 vs_5_0 ps_5_0)';
+      }
+      return getParameter.apply(this, [parameter]);
+    };
+
+    // Override canvas fingerprinting
+    const originalGetContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function(type) {
+      const context = originalGetContext.apply(this, arguments);
+      if (type === '2d') {
+        const originalGetImageData = context.getImageData;
+        context.getImageData = function() {
+          const imageData = originalGetImageData.apply(this, arguments);
+          return imageData;
+        };
+      }
+      return context;
+    };
+  });
+  
+  console.log('Applied advanced stealth techniques');
+
+
+  // Function to simulate human-like mouse movement
+  async function simulateHumanMouseMovement(page) {
+    const { width, height } = await page.evaluate(() => ({
+      width: window.innerWidth,
+      height: window.innerHeight
+    }));
+
+    // Generate random points for mouse movement
+    const points = Array.from({ length: 5 }, () => ({
+      x: Math.floor(Math.random() * width),
+      y: Math.floor(Math.random() * height)
+    }));
+
+    // Move mouse through random points with random delays
+    for (const point of points) {
+      await page.mouse.move(point.x, point.y, {
+        steps: Math.floor(Math.random() * 10) + 5 // Random steps between 5-15
+      });
+      await page.waitForTimeout(Math.floor(Math.random() * 200) + 100);
+    }
+  }
+
+  try {
+    // We already created a page earlier, no need to create another one
+    // This was causing issues with duplicate pages
+    
+    // Add a random delay before navigation to mimic human behavior
+    const randomDelay = Math.floor(Math.random() * 2000) + 1000; // 1-3 seconds
+    console.log(`Adding random delay of ${randomDelay}ms before navigation...`);
+    await page.waitForTimeout(randomDelay);
+    
+    // Navigate to Gmail sign-in page
+    console.log('Navigating to Gmail sign-in page...');
+    await page.goto('https://accounts.google.com/AccountChooser/signinchooser?service=mail&continue=https://mail.google.com/mail/&flowName=GlifWebSignIn&flowEntry=AccountChooser&ec=asw-gmail-globalnav-signin', {
+      waitUntil: 'networkidle2',
+      timeout: 60000
+    });
+    
+    // Add a random delay to mimic human behavior
+    await page.waitForTimeout(Math.floor(Math.random() * 1000) + 500);
+    
+    // Wait for the email input field to be visible
+    console.log('Waiting for email input field...');
+    await page.waitForSelector('input[type="email"]', { visible: true, timeout: 30000 });
+    
+    // Simulate human-like mouse movement before interacting with the field
+    await simulateHumanMouseMovement(page);
+    await page.mouse.move(Math.random() * 100 + 200, Math.random() * 50 + 200, { steps: 10 });
+    
+    // Add human-like typing behavior with random delays between keystrokes
+    console.log(`Entering email address: ${email}`);
+    for (const char of email) {
+      await page.type('input[type="email"]', char, { delay: Math.floor(Math.random() * 100) + 50 });
+      // Small random pause between some characters
+      if (Math.random() > 0.7) {
+        await page.waitForTimeout(Math.floor(Math.random() * 200) + 100);
+      }
+    }
+    
+    // Add a random delay before clicking Next to mimic human behavior
+    await page.waitForTimeout(Math.floor(Math.random() * 1000) + 500);
+    
+    // Simulate human-like mouse movement before clicking Next
+    console.log('Moving mouse to Next button...');
+    await simulateHumanMouseMovement(page);
+    const nextButton = await page.$('#identifierNext');
+    const nextButtonBox = await nextButton.boundingBox();
+    await page.mouse.move(
+      nextButtonBox.x + nextButtonBox.width / 2 + (Math.random() * 10 - 5),
+      nextButtonBox.y + nextButtonBox.height / 2 + (Math.random() * 10 - 5),
+      { steps: 10 }
+    );
+    
+    // Click the Next button with human-like behavior
+    console.log('Clicking Next button...');
+    await page.mouse.down();
+    await page.waitForTimeout(Math.random() * 100 + 50);
+    await page.mouse.up();
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }),
+      page.click('#identifierNext')
+    ]);
+    
+    // Add error handling for security challenges
+    const securityChallengeSelector = 'div[aria-live="polite"]';
+    try {
+      const securityChallenge = await page.waitForSelector(securityChallengeSelector, { timeout: 5000 });
+      if (securityChallenge) {
+        const challengeText = await page.evaluate(el => el.textContent, securityChallenge);
+        console.log(`Security challenge detected: ${challengeText}`);
+        console.log('Taking screenshot of security challenge...');
+        await page.screenshot({ path: 'security-challenge.png' });
+      }
+    } catch (e) {
+      // No security challenge detected, continue
+      console.log('No immediate security challenge detected, continuing...');
+    }
+    
+    // Wait for the password page to load and look for the "Forgot password" link
+    console.log('Looking for Forgot password link...');
+    
+    // Add a delay to ensure the page is fully loaded
+    await page.waitForTimeout(2000);
+
+    // Wait for the password input field to be visible first
+    await page.waitForSelector('input[type="password"]', { visible: true, timeout: 30000 });
+    
+    // Use the ID selector for the "Forgot password" button container
+    const forgotPasswordSelector = '#forgotPassword';
+    await page.waitForSelector(forgotPasswordSelector, { visible: true, timeout: 30000 });
+    
+    // Click on "Forgot password" using multiple methods to ensure success
+    try {
+      // First attempt: Click using the ID selector with human-like movement
+      console.log('Moving to Forgot Password button...');
+      await simulateHumanMouseMovement(page);
+      const forgotPasswordButton = await page.$(forgotPasswordSelector);
+      const buttonBox = await forgotPasswordButton.boundingBox();
+      
+      // Move to button with slight randomization
+      await page.mouse.move(
+        buttonBox.x + buttonBox.width / 2 + (Math.random() * 10 - 5),
+        buttonBox.y + buttonBox.height / 2 + (Math.random() * 10 - 5),
+        { steps: 10 }
+      );
+      
+      // Click with human-like behavior
+      if (forgotPasswordButton) {
+        await page.mouse.down();
+        await page.waitForTimeout(Math.random() * 100 + 50);
+        await page.mouse.up();
+        await forgotPasswordButton.click();
+      } else {
+        // Fallback: Look for the text content
+        console.log('ID selector failed, trying text content approach...');
+        const spanSelector = 'span.VfPpkd-vQzf8d';
+        const elements = await page.$$(spanSelector);
+        for (const element of elements) {
+          const text = await page.evaluate(el => el.textContent, element);
+          if (text.trim() === 'Forgot password?') {
+            console.log('Found "Forgot password?" link by text, attempting to click...');
+            const parentButton = await element.evaluateHandle(el => el.closest('button'));
+            await parentButton.click();
+            break;
+          }
+        }
+      }
+      
+      console.log('Successfully clicked "Forgot password?"');
+    } catch (error) {
+      console.error('Error clicking "Forgot password?" link:', error);
+      // Take screenshot if click fails
+      await page.screenshot({ path: 'forgot-password-error.png' });
+    }
+
+    // Wait a moment to ensure the recovery page loads
+    await page.waitForTimeout(5000);
+    
+    // Optional: Take a screenshot to verify the process completed successfully
+    await page.screenshot({ path: 'recovery-page.png' });
+    
+    console.log('Password recovery workflow completed successfully!');
+    
+  } catch (error) {
+    console.error('An error occurred during the password recovery process:', error);
+  } finally {
+    // Close the browser
+    await browser.close();
+    console.log('Browser closed.');
+  }
+}
+
+// Example usage
+const emailToRecover = 'hassendiaeldein@gmail.com'; // Replace with the actual email
+runGmailPasswordRecovery(emailToRecover);

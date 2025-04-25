@@ -1,0 +1,13 @@
+[2025-04-25T19:25:37.506Z] Starting Gmail password recovery process...
+[2025-04-25T19:25:37.512Z] Launching browser with enhanced stealth techniques...
+[2025-04-25T19:25:38.665Z] Using random user agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0
+[2025-04-25T19:25:38.671Z] Applied advanced stealth techniques
+[2025-04-25T19:25:38.672Z] Adding random delay of 2357ms before navigation...
+[2025-04-25T19:25:41.037Z] Navigating to Gmail sign-in page...
+[2025-04-25T19:25:41.439Z] 
+Page navigated to: https://accounts.google.com/v3/signin/identifier?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&ifkv=AXH0vVseRaP1aiuEX2z1K7FSVA9KOqVmhcyk35mTNCjgWEmrkf93NfVp5p3QZbuiIsu-l8G9sQT7BA&rip=1&sacu=1&service=mail&flowName=GlifWebSignIn&flowEntry=ServiceLogin&dsh=S439468747%3A1745609141415313
+[2025-04-25T19:25:43.151Z] 
+Page navigated to: https://accounts.google.com/v3/signin/identifier?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&ifkv=AXH0vVseRaP1aiuEX2z1K7FSVA9KOqVmhcyk35mTNCjgWEmrkf93NfVp5p3QZbuiIsu-l8G9sQT7BA&rip=1&sacu=1&service=mail&flowName=GlifWebSignIn&flowEntry=ServiceLogin&dsh=S439468747%3A1745609141415313
+[2025-04-25T19:25:45.494Z] ERROR: An error occurred during the password recovery process: Error: Navigating frame was detached
+[2025-04-25T19:28:45.519Z] Browser closed.
+[2025-04-25T19:28:45.520Z] ERROR: Invalid result type: 

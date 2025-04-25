@@ -1,0 +1,10 @@
+Instructions for Gmail Password Recovery Tool
+
+- All screenshots, HTML pages, and console logs are now saved in a structured folder system under Debug-Logs.
+- Each run creates a folder named after the email being processed (e.g., Debug-Logs/hassendiaeldein@gmail.com).
+- Inside each email folder:
+  - /screenshots: Contains all screenshots for the run.
+  - /html-pages: Contains HTML source files saved for debugging.
+  - /console: Contains .txt files with full console logs, each named with the date and time (e.g., Feb24-1842.txt).
+- Console logs include timestamps for every line.
+- This instructions.txt will be updated with every new feature or addition as requested.

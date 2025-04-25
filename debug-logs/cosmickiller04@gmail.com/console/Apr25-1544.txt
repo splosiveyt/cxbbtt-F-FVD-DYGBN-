@@ -1,0 +1,142 @@
+[2025-04-25T14:44:58.597Z] Starting Gmail password recovery process...
+[2025-04-25T14:44:58.607Z] Launching browser with enhanced stealth techniques...
+[2025-04-25T14:45:02.868Z] Using random user agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0
+[2025-04-25T14:45:03.156Z] Using random user agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0
+[2025-04-25T14:45:03.158Z] Applied advanced stealth techniques
+[2025-04-25T14:45:03.159Z] Adding random delay of 2113ms before navigation...
+[2025-04-25T14:45:03.160Z] Using random user agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
+[2025-04-25T14:45:03.171Z] Using random user agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0
+[2025-04-25T14:45:03.173Z] Applied advanced stealth techniques
+[2025-04-25T14:45:03.174Z] Adding random delay of 1774ms before navigation...
+[2025-04-25T14:45:03.175Z] Applied advanced stealth techniques
+[2025-04-25T14:45:03.176Z] Adding random delay of 1644ms before navigation...
+[2025-04-25T14:45:03.179Z] Applied advanced stealth techniques
+[2025-04-25T14:45:03.179Z] Adding random delay of 1891ms before navigation...
+[2025-04-25T14:45:04.840Z] Navigating to Gmail sign-in page...
+[2025-04-25T14:45:04.954Z] Navigating to Gmail sign-in page...
+[2025-04-25T14:45:05.079Z] Navigating to Gmail sign-in page...
+[2025-04-25T14:45:05.142Z] 
+Page navigated to: https://accounts.google.com/v3/signin/identifier?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&ifkv=AXH0vVu5QkGIwlVh0Aw_MfHy892FgURuf41T75A2iyuXE3BiVGyubLJ6wTmNS9xBOnHjJijVnYez&rip=1&sacu=1&service=mail&flowName=GlifWebSignIn&flowEntry=ServiceLogin&dsh=S-1623509742%3A1745592305098778
+[2025-04-25T14:45:05.278Z] Navigating to Gmail sign-in page...
+[2025-04-25T14:45:07.792Z] 
+Page navigated to: https://accounts.google.com/v3/signin/identifier?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&ifkv=AXH0vVvbc5Yv56lDe3W53JW-vJYufctRb7o97rDGElHFczkZvOJYEsOUrp50SRAd28b4hDNQwykmfQ&rip=1&sacu=1&service=mail&flowName=GlifWebSignIn&flowEntry=ServiceLogin&dsh=S-1643929061%3A1745592305465384
+[2025-04-25T14:45:16.657Z] 
+Page navigated to: https://accounts.google.com/v3/signin/identifier?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&ifkv=AXH0vVvbc5Yv56lDe3W53JW-vJYufctRb7o97rDGElHFczkZvOJYEsOUrp50SRAd28b4hDNQwykmfQ&rip=1&sacu=1&service=mail&flowName=GlifWebSignIn&flowEntry=ServiceLogin&dsh=S-1643929061%3A1745592305465384
+[2025-04-25T14:45:22.156Z] 
+Page navigated to: https://accounts.google.com/v3/signin/identifier?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&ifkv=AXH0vVu5QkGIwlVh0Aw_MfHy892FgURuf41T75A2iyuXE3BiVGyubLJ6wTmNS9xBOnHjJijVnYez&rip=1&sacu=1&service=mail&flowName=GlifWebSignIn&flowEntry=ServiceLogin&dsh=S-1623509742%3A1745592305098778
+[2025-04-25T14:45:22.416Z] 
+Page navigated to: https://accounts.google.com/v3/signin/identifier?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&ifkv=AXH0vVvAv0cCpnVReU7LvJF35wHIa3UoHFCPUiTHr9qN_f6CqVB1G-iSYJltFdEq8GhaLzMy0yNj&rip=1&sacu=1&service=mail&flowName=GlifWebSignIn&flowEntry=ServiceLogin&dsh=S-619513120%3A1745592307234230
+[2025-04-25T14:45:22.465Z] 
+Page navigated to: https://accounts.google.com/v3/signin/identifier?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&ifkv=AXH0vVvAv0cCpnVReU7LvJF35wHIa3UoHFCPUiTHr9qN_f6CqVB1G-iSYJltFdEq8GhaLzMy0yNj&rip=1&sacu=1&service=mail&flowName=GlifWebSignIn&flowEntry=ServiceLogin&dsh=S-619513120%3A1745592307234230
+[2025-04-25T14:45:22.631Z] 
+Page navigated to: https://accounts.google.com/v3/signin/identifier?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&ifkv=AXH0vVsOLUcXF1DFHqOlBVQHZztfAYAvdpKzeepTxfx86SRu_jj8xq4lLnW9E3bn5FbfVmSTG4SaIw&rip=1&sacu=1&service=mail&flowName=GlifWebSignIn&flowEntry=ServiceLogin&dsh=S-1775372260%3A1745592307427654
+[2025-04-25T14:45:22.675Z] 
+Page navigated to: https://accounts.google.com/v3/signin/identifier?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&ifkv=AXH0vVsOLUcXF1DFHqOlBVQHZztfAYAvdpKzeepTxfx86SRu_jj8xq4lLnW9E3bn5FbfVmSTG4SaIw&rip=1&sacu=1&service=mail&flowName=GlifWebSignIn&flowEntry=ServiceLogin&dsh=S-1775372260%3A1745592307427654
+[2025-04-25T14:45:23.082Z] Waiting for email input field...
+[2025-04-25T14:45:23.187Z] Waiting for email input field...
+[2025-04-25T14:45:23.354Z] Waiting for email input field...
+[2025-04-25T14:45:23.495Z] Waiting for email input field...
+[2025-04-25T14:45:25.384Z] Entering email address: mollycorbett9@gmail.com
+[2025-04-25T14:45:25.442Z] Entering email address: hassendiaeldein@gmail.com
+[2025-04-25T14:45:25.594Z] Entering email address: ahmed30092008yasin@gmail.com
+[2025-04-25T14:45:25.643Z] Entering email address: cosmickiller04@gmail.com
+[2025-04-25T14:45:33.321Z] Moving mouse to Next button...
+[2025-04-25T14:45:44.156Z] Clicking Next button...
+[2025-04-25T14:45:45.241Z] Moving mouse to Next button...
+[2025-04-25T14:45:45.436Z] Moving mouse to Next button...
+[2025-04-25T14:45:45.488Z] 
+Page navigated to: https://accounts.google.com/v3/signin/challenge/pwd?TL=AArrULRXh0Bja7sMzC7-9thVEvDtXI1J8ilF34iRnOXzR3ORrMdbLguN73f9KmhI&checkConnection=youtube%3A15543&checkedDomains=youtube&cid=2&continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&dsh=S-1623509742%3A1745592305098778&flowEntry=ServiceLogin&flowName=GlifWebSignIn&ifkv=AXH0vVu5QkGIwlVh0Aw_MfHy892FgURuf41T75A2iyuXE3BiVGyubLJ6wTmNS9xBOnHjJijVnYez&pstMsg=1&rip=1&service=mail
+[2025-04-25T14:45:45.489Z] Post-email page detected, checking for CAPTCHA...
+[2025-04-25T14:45:45.526Z] Security challenge detected: English (United States)
+[2025-04-25T14:45:45.526Z] Taking screenshot of security challenge...
+[2025-04-25T14:45:45.535Z] Moving mouse to Next button...
+[2025-04-25T14:45:45.746Z] Checking for CAPTCHA after clicking Next...
+[2025-04-25T14:45:46.991Z] 
+==============================================
+[2025-04-25T14:45:46.992Z] RUNNING POST-EMAIL CAPTCHA DETECTION CHECK
+[2025-04-25T14:45:46.992Z] Current URL: https://accounts.google.com/v3/signin/challenge/pwd?TL=AArrULRXh0Bja7sMzC7-9thVEvDtXI1J8ilF34iRnOXzR3ORrMdbLguN73f9KmhI&checkConnection=youtube%3A15543&checkedDomains=youtube&cid=2&continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&dsh=S-1623509742%3A1745592305098778&flowEntry=ServiceLogin&flowName=GlifWebSignIn&ifkv=AXH0vVu5QkGIwlVh0Aw_MfHy892FgURuf41T75A2iyuXE3BiVGyubLJ6wTmNS9xBOnHjJijVnYez&pstMsg=1&rip=1&service=mail
+[2025-04-25T14:45:46.994Z] ==============================================
+
+[2025-04-25T14:45:46.995Z] Checking page sources for CAPTCHA...
+[2025-04-25T14:45:47.008Z] 
+==============================================
+[2025-04-25T14:45:47.009Z] CAPTCHA NEEDED - DETECTED IN PAGE SOURCES
+[2025-04-25T14:45:47.009Z] DETECTION METHOD: HTML_SOURCE
+[2025-04-25T14:45:47.009Z] CAPTCHA PATTERN FOUND: captcha
+[2025-04-25T14:45:47.010Z] ==============================================
+
+[2025-04-25T14:45:47.172Z] CAPTCHA NEEDED - DETECTED DURING NAVIGATION EVENT!
+[2025-04-25T14:45:47.398Z] Clicking Next button...
+[2025-04-25T14:45:47.751Z] We are on a post-email page, checking for CAPTCHA...
+[2025-04-25T14:45:47.765Z] 
+==============================================
+[2025-04-25T14:45:47.765Z] RUNNING POST-EMAIL CAPTCHA DETECTION CHECK
+[2025-04-25T14:45:47.766Z] Current URL: https://accounts.google.com/v3/signin/challenge/pwd?TL=AArrULRXh0Bja7sMzC7-9thVEvDtXI1J8ilF34iRnOXzR3ORrMdbLguN73f9KmhI&checkConnection=youtube%3A15543&checkedDomains=youtube&cid=2&continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&dsh=S-1623509742%3A1745592305098778&flowEntry=ServiceLogin&flowName=GlifWebSignIn&ifkv=AXH0vVu5QkGIwlVh0Aw_MfHy892FgURuf41T75A2iyuXE3BiVGyubLJ6wTmNS9xBOnHjJijVnYez&pstMsg=1&rip=1&service=mail
+[2025-04-25T14:45:47.766Z] ==============================================
+
+[2025-04-25T14:45:47.767Z] Checking page sources for CAPTCHA...
+[2025-04-25T14:45:47.781Z] 
+==============================================
+[2025-04-25T14:45:47.782Z] CAPTCHA NEEDED - DETECTED IN PAGE SOURCES
+[2025-04-25T14:45:47.783Z] DETECTION METHOD: HTML_SOURCE
+[2025-04-25T14:45:47.783Z] CAPTCHA PATTERN FOUND: captcha
+[2025-04-25T14:45:47.783Z] ==============================================
+
+[2025-04-25T14:45:47.800Z] Clicking Next button...
+[2025-04-25T14:45:48.559Z] Clicking Next button...
+[2025-04-25T14:45:48.745Z] 
+Page navigated to: https://accounts.google.com/v3/signin/rejected?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&dsh=S-1643929061%3A1745592305465384&epd=Af585jzn0P3CtLf9PH_IW6b5_-9vTEgBvnUP7P5WoAVCWoo6vQz4fZm2CQ&flowEntry=ServiceLogin&flowName=GlifWebSignIn&idnf=hassendiaeldein%40gmail.com&ifkv=AXH0vVvbc5Yv56lDe3W53JW-vJYufctRb7o97rDGElHFczkZvOJYEsOUrp50SRAd28b4hDNQwykmfQ&rhlk=le&rip=1&rrk=46&service=mail
+[2025-04-25T14:45:49.215Z] 
+Page navigated to: https://accounts.google.com/v3/signin/challenge/pwd?TL=ADBLaQBt7lFHhnfVLysDojKmYHPMGs6XNvmPrMgESI09J7YztWuqt-6sJshiPp0A&checkConnection=youtube%3A11085&checkedDomains=youtube&cid=1&continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&dsh=S-619513120%3A1745592307234230&flowEntry=ServiceLogin&flowName=GlifWebSignIn&ifkv=AXH0vVvAv0cCpnVReU7LvJF35wHIa3UoHFCPUiTHr9qN_f6CqVB1G-iSYJltFdEq8GhaLzMy0yNj&pstMsg=1&rip=1&service=mail
+[2025-04-25T14:45:49.216Z] Post-email page detected, checking for CAPTCHA...
+[2025-04-25T14:45:49.264Z] ==============================================
+[2025-04-25T14:45:49.265Z] CAPTCHA NEEDED
+[2025-04-25T14:45:49.266Z] ==============================================
+[2025-04-25T14:45:49.293Z] Attempting to extract CAPTCHA from page sources...
+[2025-04-25T14:45:49.298Z] Extracting CAPTCHA from page sources...
+[2025-04-25T14:45:49.397Z] Found 1 potential CAPTCHA image tags in source
+[2025-04-25T14:45:49.399Z] No CAPTCHA found in page sources, saving HTML for debugging
+[2025-04-25T14:45:49.405Z] HTML source saved for debugging
+[2025-04-25T14:45:49.405Z] CAPTCHA SOLVING: SENDING TO CAPSOLVER API...
+[2025-04-25T14:45:49.406Z] ERROR: ERROR DURING CAPTCHA SOLVING: ReferenceError: imageData is not defined
+[2025-04-25T14:45:49.409Z] 
+==============================================
+[2025-04-25T14:45:49.409Z] FINAL CAPTCHA CHECK BEFORE PASSWORD PAGE
+[2025-04-25T14:45:49.411Z] Current URL: https://accounts.google.com/v3/signin/challenge/pwd?TL=AArrULRXh0Bja7sMzC7-9thVEvDtXI1J8ilF34iRnOXzR3ORrMdbLguN73f9KmhI&checkConnection=youtube%3A15543&checkedDomains=youtube&cid=2&continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&dsh=S-1623509742%3A1745592305098778&flowEntry=ServiceLogin&flowName=GlifWebSignIn&ifkv=AXH0vVu5QkGIwlVh0Aw_MfHy892FgURuf41T75A2iyuXE3BiVGyubLJ6wTmNS9xBOnHjJijVnYez&pstMsg=1&rip=1&service=mail
+[2025-04-25T14:45:49.412Z] ==============================================
+
+[2025-04-25T14:45:49.551Z] ERROR: An error occurred during the password recovery process: Error: Node is detached from document
+[2025-04-25T14:45:50.603Z] ERROR: An error occurred during the password recovery process: Error: Node is detached from document
+[2025-04-25T14:45:51.203Z] 
+==============================================
+[2025-04-25T14:45:51.210Z] RUNNING POST-EMAIL CAPTCHA DETECTION CHECK
+[2025-04-25T14:45:51.257Z] Current URL: https://accounts.google.com/v3/signin/challenge/pwd?TL=ADBLaQBt7lFHhnfVLysDojKmYHPMGs6XNvmPrMgESI09J7YztWuqt-6sJshiPp0A&checkConnection=youtube%3A11085&checkedDomains=youtube&cid=1&continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&dsh=S-619513120%3A1745592307234230&flowEntry=ServiceLogin&flowName=GlifWebSignIn&ifkv=AXH0vVvAv0cCpnVReU7LvJF35wHIa3UoHFCPUiTHr9qN_f6CqVB1G-iSYJltFdEq8GhaLzMy0yNj&pstMsg=1&rip=1&service=mail
+[2025-04-25T14:45:51.265Z] ==============================================
+
+[2025-04-25T14:45:51.283Z] Checking page sources for CAPTCHA...
+[2025-04-25T14:45:51.313Z] ERROR: Error during CAPTCHA detection: TargetCloseError: Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.
+[2025-04-25T14:45:51.407Z] 
+Page navigated to: https://accounts.google.com/v3/signin/challenge/pwd?TL=AArrULR2sutSM3FELmv8pQZbs5o3chDxXAgm114spdKSLBg3ylofm4Z8ZtnUCjPx&checkConnection=youtube%3A10482&checkedDomains=youtube&cid=1&continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&dsh=S-1775372260%3A1745592307427654&flowEntry=ServiceLogin&flowName=GlifWebSignIn&ifkv=AXH0vVsOLUcXF1DFHqOlBVQHZztfAYAvdpKzeepTxfx86SRu_jj8xq4lLnW9E3bn5FbfVmSTG4SaIw&pstMsg=1&rip=1&service=mail
+[2025-04-25T14:45:51.408Z] Post-email page detected, checking for CAPTCHA...
+[2025-04-25T14:45:51.611Z] ERROR: An error occurred during the password recovery process: Error: Node is either not clickable or not an Element
+[2025-04-25T14:45:52.428Z] We are on a post-email page, performing final CAPTCHA check...
+[2025-04-25T14:45:52.429Z] 
+==============================================
+[2025-04-25T14:45:52.429Z] RUNNING POST-EMAIL CAPTCHA DETECTION CHECK
+[2025-04-25T14:45:52.430Z] Current URL: https://accounts.google.com/v3/signin/challenge/pwd?TL=AArrULRXh0Bja7sMzC7-9thVEvDtXI1J8ilF34iRnOXzR3ORrMdbLguN73f9KmhI&checkConnection=youtube%3A15543&checkedDomains=youtube&cid=2&continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&dsh=S-1623509742%3A1745592305098778&flowEntry=ServiceLogin&flowName=GlifWebSignIn&ifkv=AXH0vVu5QkGIwlVh0Aw_MfHy892FgURuf41T75A2iyuXE3BiVGyubLJ6wTmNS9xBOnHjJijVnYez&pstMsg=1&rip=1&service=mail
+[2025-04-25T14:45:52.431Z] ==============================================
+
+[2025-04-25T14:45:52.431Z] Checking page sources for CAPTCHA...
+[2025-04-25T14:45:52.443Z] 
+==============================================
+[2025-04-25T14:45:52.443Z] CAPTCHA NEEDED - DETECTED IN PAGE SOURCES
+[2025-04-25T14:45:52.444Z] DETECTION METHOD: HTML_SOURCE
+[2025-04-25T14:45:52.444Z] CAPTCHA PATTERN FOUND: captcha
+[2025-04-25T14:45:52.445Z] ==============================================
+
+[2025-04-25T14:45:52.557Z] 
+==============================================
+[2025-04-25T14:45:52.558Z] CAPTCHA NEEDED - DETECTED IN FINAL CHECK
+[2025-04-25T14:45:52.558Z] ==============================================
+
+[2025-04-25T14:45:52.681Z] Looking for Forgot password link...

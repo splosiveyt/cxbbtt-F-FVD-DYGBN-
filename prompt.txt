@@ -1,0 +1,62 @@
+Add all of these functions below okay without creating a single syntax error in the process.
+
+main.conf
+
+concurrency=1
+capsolvertoken=
+resend_attempts=3
+resend_delay=15
+
+input the capsolver token from the index.js into the main.conf file inside of the configs folder
+the resend attempts is the amount of times to press resend the prompt if no press is detected.
+the resend delay is how how many seconds per resend prompt attempt
+concurrency is just the concurrency
+
+emails are from input.txt inside mails/input/
+
+concurrency works like this.
+
+if there are 4 emails and the concurrency is 2 it does this
+
+it will split the email list so 2 emails per concurrent run
+and each concurrent instance will run 1 email get the result then run the second straight away
+
+they will be in true parralel and each concurrent instance will have its own terminal
+the console logs will be saved per email in its dedicated folder inside of debug-logs/email/console
+they console logs at the top will also include the average ram usage
+
+console updates
+------------------
+make the console less bloated so no link spam it just gives basic sentences for each run
+so it says basic shit like for example
+email@gmail.com -- start run
+email@gmail.com -- entering email
+email@gmail.com -- captcha detected
+email@gmail.com -- browser unsafe / switching useragent and restarting
+email@gmail.com -- RAM USAGE AVERAGE xxmb/s
+
+you understand basic shit
+
+then screenshots for the run are also saved in their dedicated folder inside of debug-logs/email/screenshots  and so are html in debug-logs/email/html-pages
+
+then for the saves. there are 3 folders inside of mails/output being pressed unpressed and unpromtable with each having an output.txt inside of it.
+if a mail that was run through the tool gets a result of a press wether yes or no it is saved inside of pressed
+if a mail that was run and the phone prompt page isnt detected it goes into unpromtable
+if a mail that was run and has the phone prompt sent and resent but gets no result it goes into promtable-nopress
+
+each the folders have a output.txt
+
+mails\output\promptable-nopress\output.txt
+mails\output\pressed\output.txt
+mails\output\unpromtable\output.txt
+
+next
+
+if the email is input and then next is pressed and the page says this on it 
+
+"Couldn't sign you in"
+"This browser or app may not be secure."
+
+it will say in console
+email@gmail.com -- browser unsafe / switching useragent and restarting
+and switch useragent and restart with the same mail
